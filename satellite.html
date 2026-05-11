@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Satellite Scanner — AgroSphere</title>
+  <meta name="description" content="AI satellite land scanning with NDVI analysis, soil moisture heatmaps, vegetation health monitoring and crop stress detection." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #satellite-map { height: 420px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-bright); }
+    .leaflet-container { background: #0a1f30; }
+    .scan-overlay { position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,transparent,rgba(0,212,170,0.8),transparent);animation:scan-sweep 2.5s linear infinite;pointer-events:none; }
+    @keyframes scan-sweep { 0%{top:0} 100%{top:420px} }
+    .zone-card { background:var(--bg-glass-light);border:1px solid var(--border-card);border-radius:var(--radius-md);padding:14px;cursor:pointer;transition:all 0.2s; }
+    .zone-card:hover { border-color:var(--border-bright);background:var(--bg-card-hover); }
+    .zone-card.selected { border-color:var(--clr-primary);box-shadow:0 0 20px var(--clr-primary-glow); }
+    .ndvi-legend { display:flex;gap:0;height:16px;border-radius:8px;overflow:hidden;width:100%; }
+    .ndvi-legend div { flex:1; }
+    .scanning-anim { display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.3);border-radius:var(--radius-md);margin-bottom:16px; }
+    .scan-pulse { width:10px;height:10px;border-radius:50%;background:var(--clr-primary);animation:pulse-dot 1s infinite; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item active" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Insights</div>
+      <a class="nav-item" href="#"><span class="nav-icon">📈</span> Analytics</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🤖</span> AI Assistant</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🔔</span> Alerts<span class="nav-badge">4</span></a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🏛️</span> Gov Schemes</a>
+      <a class="nav-item" href="#"><span class="nav-icon">💰</span> Finance</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">🛰️ Satellite Scanner</div><div class="topbar-sub">Google Earth Engine · GIS Mapping · NDVI Analysis</div></div>
+      <div class="topbar-actions">
+        <button class="btn-primary" onclick="startScan()" id="scan-btn">🛰️ Scan Now</button>
+        <button class="topbar-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Scan Status -->
+      <div class="scanning-anim" id="scan-status" style="display:none">
+        <div class="scan-pulse"></div>
+        <span style="font-size:13px;font-weight:600;color:var(--clr-primary)">Scanning — Satellite pass in progress... Analyzing NDVI, soil moisture, and vegetation health</span>
+      </div>
+
+      <!-- Top Metrics -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="metric-card">
+          <div class="mc-icon green">🌿</div>
+          <div class="mc-info"><div class="mc-value">0.74</div><div class="mc-label">Overall NDVI</div><div class="mc-change up">↑ Healthy vegetation</div></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon blue">💧</div>
+          <div class="mc-info"><div class="mc-value">68%</div><div class="mc-label">Avg Soil Moisture</div><div class="mc-change neutral">Optimal range</div></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon amber">⚠️</div>
+          <div class="mc-info"><div class="mc-value">3.2 ac</div><div class="mc-label">Dry Stress Zones</div><div class="mc-change down">↑ Needs irrigation</div></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-icon green">🌱</div>
+          <div class="mc-info"><div class="mc-value">88%</div><div class="mc-label">Crop Health Score</div><div class="mc-change up">↑ 4% this week</div></div>
+        </div>
+      </div>
+
+      <!-- Map + Zones -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- Satellite Map -->
+        <div class="card" style="padding:0;overflow:hidden;position:relative">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between">
+            <div class="card-title">🗺️ Live Satellite Map</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-secondary" style="padding:6px 12px;font-size:11px" onclick="setLayer('ndvi')">NDVI</button>
+              <button class="btn-secondary" style="padding:6px 12px;font-size:11px" onclick="setLayer('moisture')">Moisture</button>
+              <button class="btn-secondary" style="padding:6px 12px;font-size:11px" onclick="setLayer('satellite')">Satellite</button>
+            </div>
+          </div>
+          <div style="position:relative">
+            <div id="satellite-map"></div>
+            <div class="scan-overlay" id="scan-line" style="display:none"></div>
+          </div>
+          <div style="padding:14px 20px;border-top:1px solid var(--border-subtle)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">NDVI Scale</div>
+            <div class="ndvi-legend">
+              <div style="background:#ef4444"></div>
+              <div style="background:#f97316"></div>
+              <div style="background:#f59e0b"></div>
+              <div style="background:#84cc16"></div>
+              <div style="background:#22c55e"></div>
+              <div style="background:#00d4aa"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px">
+              <span>Bare Soil (0.0)</span><span>Sparse (0.3)</span><span>Moderate (0.5)</span><span>Dense (0.8+)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone Analysis -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📍 Field Zone Analysis</div>
+            <span class="badge teal">AI Analyzed</span>
+          </div>
+          <div id="zone-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+
+      <!-- NDVI Chart + AI Report -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 NDVI Zone Comparison</div>
+            <span class="card-action">Download Report</span>
+          </div>
+          <canvas id="ndviZoneChart" height="220"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 AI Satellite Insights</div>
+            <span class="badge teal">Updated Now</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="alert-item success">
+              <div class="alert-icon">🌿</div>
+              <div class="alert-content">
+                <div class="alert-title">Paddy field (North) — Excellent Growth</div>
+                <div class="alert-desc">NDVI 0.78 — Dense, healthy canopy. No action needed. Harvest window: 40-45 days.</div>
+              </div>
+            </div>
+            <div class="alert-item warning">
+              <div class="alert-icon">💧</div>
+              <div class="alert-content">
+                <div class="alert-title">Maize (East) — Moisture Stress</div>
+                <div class="alert-desc">NDVI dropped to 0.54. Soil moisture at 32%. Irrigate within 6 hours — 1,200L needed.</div>
+              </div>
+            </div>
+            <div class="alert-item info">
+              <div class="alert-icon">🌡️</div>
+              <div class="alert-content">
+                <div class="alert-title">Heat Stress Risk — South Zone</div>
+                <div class="alert-desc">Surface temperature 4°C above optimal for groundnut. Consider shade netting or early morning watering.</div>
+              </div>
+            </div>
+            <div class="alert-item success">
+              <div class="alert-icon">🌧️</div>
+              <div class="alert-content">
+                <div class="alert-title">Rain Predicted — Skip Tonight's Irrigation</div>
+                <div class="alert-desc">72% rain probability tonight. AI auto-paused scheduled irrigation. Estimated saving: 4,200L.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Moisture Heatmap Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🗺️ Soil Moisture Grid (per hectare)</div>
+          <span class="badge green">Live Data</span>
+        </div>
+        <div id="moisture-grid" style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:8px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // ── Leaflet Map ──────────────────────────────────────────────────────────────
+  const map = L.map('satellite-map', { zoomControl: true, attributionControl: false })
+    .setView([17.385, 78.486], 13);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, opacity: 0.9
+  }).addTo(map);
+
+  // Draw field polygons
+  const zones = [
+    { name: 'North Field', coords: [[17.395,78.475],[17.400,78.490],[17.392,78.495],[17.387,78.480]], ndvi: 0.78, moisture: 72, color: '#22c55e', status: 'Excellent' },
+    { name: 'East Field',  coords: [[17.385,78.495],[17.390,78.505],[17.380,78.508],[17.375,78.498]], ndvi: 0.54, moisture: 32, color: '#f59e0b', status: 'Stress' },
+    { name: 'South Field', coords: [[17.370,78.480],[17.375,78.490],[17.368,78.498],[17.362,78.488]], ndvi: 0.68, moisture: 61, color: '#00d4aa', status: 'Good' },
+    { name: 'West Field',  coords: [[17.382,78.468],[17.388,78.478],[17.378,78.482],[17.372,78.472]], ndvi: 0.81, moisture: 79, color: '#22c55e', status: 'Excellent' },
+  ];
+
+  zones.forEach(z => {
+    L.polygon(z.coords, { color: z.color, weight: 2, fillOpacity: 0.35, fillColor: z.color })
+      .addTo(map)
+      .bindPopup(`<b>${z.name}</b><br>NDVI: ${z.ndvi}<br>Moisture: ${z.moisture}%<br>Status: ${z.status}`);
+  });
+
+  // ── Zone Cards ───────────────────────────────────────────────────────────────
+  const zoneList = document.getElementById('zone-list');
+  zones.forEach((z, i) => {
+    const pct = Math.round(z.ndvi * 100);
+    zoneList.innerHTML += `
+      <div class="zone-card ${i === 1 ? 'selected' : ''}" onclick="document.querySelectorAll('.zone-card').forEach(c=>c.classList.remove('selected'));this.classList.add('selected')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${z.name}</div>
+          <span class="badge ${z.status === 'Stress' ? 'amber' : 'green'}">${z.status}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${z.color}">${z.ndvi}</div><div style="font-size:10px;color:var(--text-muted)">NDVI</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${z.moisture < 40 ? 'var(--clr-warning)' : 'var(--clr-success)'}">${z.moisture}%</div><div style="font-size:10px;color:var(--text-muted)">Moisture</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--text-primary)">${pct}%</div><div style="font-size:10px;color:var(--text-muted)">Health</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${z.status === 'Stress' ? 'amber' : ''}" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  });
+
+  // ── NDVI Zone Chart ──────────────────────────────────────────────────────────
+  new Chart(document.getElementById('ndviZoneChart'), {
+    type: 'bar',
+    data: {
+      labels: zones.map(z => z.name),
+      datasets: [
+        { label: 'NDVI Index', data: zones.map(z => z.ndvi), backgroundColor: zones.map(z => z.color + 'cc'), borderRadius: 8, borderSkipped: false },
+        { label: 'Moisture %', data: zones.map(z => z.moisture / 100), type: 'line', borderColor: '#60a5fa', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#60a5fa', fill: false, yAxisID: 'y' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 0, max: 1 } }
+    }
+  });
+
+  // ── Moisture Grid Heatmap ────────────────────────────────────────────────────
+  const mgEl = document.getElementById('moisture-grid');
+  for (let i = 0; i < 100; i++) {
+    const val = Math.round(20 + Math.random() * 70);
+    const hue = val < 35 ? '#ef4444' : val < 55 ? '#f59e0b' : val < 70 ? '#22c55e' : '#00d4aa';
+    const cell = document.createElement('div');
+    cell.style.cssText = `height:36px;background:${hue}22;border:1px solid ${hue}44;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${hue};cursor:pointer;transition:all 0.2s;`;
+    cell.textContent = val + '%';
+    cell.title = `Zone ${i+1}: ${val}% moisture`;
+    cell.addEventListener('mouseenter', () => cell.style.transform = 'scale(1.15)');
+    cell.addEventListener('mouseleave', () => cell.style.transform = 'scale(1)');
+    mgEl.appendChild(cell);
+  }
+});
+
+// ── Scan Animation ────────────────────────────────────────────────────────────
+let scanning = false;
+function startScan() {
+  if (scanning) return;
+  scanning = true;
+  const btn = document.getElementById('scan-btn');
+  const status = document.getElementById('scan-status');
+  const line = document.getElementById('scan-line');
+  btn.textContent = '⏳ Scanning...';
+  btn.disabled = true;
+  status.style.display = 'flex';
+  line.style.display = 'block';
+  setTimeout(() => {
+    scanning = false;
+    btn.textContent = '🛰️ Scan Now';
+    btn.disabled = false;
+    status.style.display = 'none';
+    line.style.display = 'none';
+    window.AgroApp.showToast('Satellite scan complete — NDVI & moisture data updated', 'success');
+  }, 5000);
+}
+
+function setLayer(type) {
+  window.AgroApp.showToast(`Switched to ${type.toUpperCase()} layer`, 'info');
+}
+</script>
+</body>
+</html>

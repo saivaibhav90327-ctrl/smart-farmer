@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Intelligence — AgroSphere</title>
+  <meta name="description" content="Weather intelligence system with rain forecasts, storm alerts, temperature monitoring, seasonal calendar and irrigation recommendations." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .weather-hero {
+      background: linear-gradient(135deg, rgba(0,212,170,0.08), rgba(59,130,246,0.08));
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .weather-hero::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,170,0.15), transparent);
+    }
+    .weather-icon-big { font-size: 80px; line-height: 1; }
+    .forecast-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 18px;
+      text-align: center; cursor: pointer; transition: all 0.3s;
+    }
+    .forecast-card:hover { transform: translateY(-4px); border-color: var(--border-bright); box-shadow: var(--shadow-glow); }
+    .forecast-card.today { border-color: rgba(0,212,170,0.4); background: rgba(0,212,170,0.05); }
+    .cal-day {
+      padding: 10px 6px; text-align: center; border-radius: var(--radius-sm);
+      font-size: 12px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+    }
+    .cal-day:hover { background: var(--bg-glass-light); border-color: var(--border-subtle); }
+    .cal-day.event { background: rgba(0,212,170,0.1); border-color: rgba(0,212,170,0.3); }
+    .cal-day.rain  { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+    .cal-day.alert { background: rgba(239,68,68,0.1);  border-color: rgba(239,68,68,0.3); }
+    .cal-day-num { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .cal-day-icon { font-size: 16px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item active" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">🌦️ Weather Intelligence</div><div class="topbar-sub">Live weather · Rainfall forecasts · Storm alerts · Seasonal farming calendar</div></div>
+      <div class="topbar-actions">
+        <div class="status-pill"><div class="status-dot"></div>Weather Station Online</div>
+        <button class="btn-primary" onclick="AgroApp.showToast('Weather data refreshed','success')">🔄 Refresh</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Current Weather Hero -->
+      <div class="weather-hero">
+        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center">
+          <div>
+            <div class="weather-icon-big">⛅</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-top:8px">Partly Cloudy</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:72px;font-weight:900;color:var(--text-bright);line-height:1">32<span style="font-size:32px">°C</span></div>
+            <div style="font-size:14px;color:var(--text-secondary)">Feels like 36°C · Ranga Reddy District, Telangana</div>
+            <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap">
+              <div><div style="font-size:11px;color:var(--text-muted)">Humidity</div><div style="font-size:16px;font-weight:800">74%</div></div>
+              <div><div style="font-size:11px;color:var(--text-muted)">Wind</div><div style="font-size:16px;font-weight:800">12 km/h NE</div></div>
+              <div><div style="font-size:11px;color:var(--text-muted)">Pressure</div><div style="font-size:16px;font-weight:800">1012 hPa</div></div>
+              <div><div style="font-size:11px;color:var(--text-muted)">UV Index</div><div style="font-size:16px;font-weight:800;color:var(--clr-warning)">8 — High</div></div>
+              <div><div style="font-size:11px;color:var(--text-muted)">Visibility</div><div style="font-size:16px;font-weight:800">14 km</div></div>
+              <div><div style="font-size:11px;color:var(--text-muted)">Dew Point</div><div style="font-size:16px;font-weight:800">26°C</div></div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="alert-item warning" style="margin-bottom:0;width:240px">
+              <div class="alert-icon">🌧️</div>
+              <div class="alert-content">
+                <div class="alert-title">Rain Tonight — 72%</div>
+                <div class="alert-desc">Expected 18–32mm rainfall after 8PM. Irrigation auto-paused.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7-Day Forecast -->
+      <div class="section-title" style="margin-bottom:16px">7-Day Forecast</div>
+      <div id="forecast-cards" class="grid-4" style="margin-bottom:24px;grid-template-columns:repeat(7,1fr)"></div>
+
+      <!-- Charts Row -->
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🌡️ Temperature Trend (7-day)</div></div>
+          <canvas id="tempChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🌧️ Rainfall Probability</div></div>
+          <canvas id="rainChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Calendar + Alerts -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- Farming Calendar -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">📅 Seasonal Farming Calendar — May 2026</div><span class="badge teal">AI Scheduled</span></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Sun</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Mon</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Tue</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Wed</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Thu</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Fri</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px">Sat</div>
+          </div>
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+          <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,170,0.3)"></div>Farming Event</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(59,130,246,0.3)"></div>Rain Forecast</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,0.3)"></div>Alert</div>
+          </div>
+        </div>
+
+        <!-- Weather Alerts -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚠️ Active Weather Alerts</div><span class="badge amber">3 Active</span></div>
+          <div class="alert-item warning"><div class="alert-icon">🌡️</div><div class="alert-content"><div class="alert-title">Heat Wave — Fri–Sat</div><div class="alert-desc">Temperatures up to 39°C expected. Increase irrigation frequency. Shade sensitive crops.</div></div><div class="alert-time">Fri</div></div>
+          <div class="alert-item info"><div class="alert-icon">🌧️</div><div class="alert-content"><div class="alert-title">Heavy Rain — Tuesday</div><div class="alert-desc">90% chance of 35–60mm rain. Harvest groundnut before Monday to prevent damage.</div></div><div class="alert-time">Tue</div></div>
+          <div class="alert-item warning"><div class="alert-icon">💨</div><div class="alert-content"><div class="alert-title">Strong Winds — Wednesday</div><div class="alert-desc">Wind gusts 40–55 km/h. Secure irrigation pipes and support tall crops (Maize).</div></div><div class="alert-time">Wed</div></div>
+
+          <div style="margin-top:20px">
+            <div class="section-title" style="margin-bottom:12px">AI Irrigation Recommendations</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-md)">
+                <div><div style="font-size:13px;font-weight:700">Tonight</div><div style="font-size:11px;color:var(--text-secondary)">Rain expected — skip irrigation</div></div>
+                <span class="badge green">Skip ✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);border-radius:var(--radius-md)">
+                <div><div style="font-size:13px;font-weight:700">Tomorrow 5:30 AM</div><div style="font-size:11px;color:var(--text-secondary)">North paddy — full schedule</div></div>
+                <span class="badge blue">Scheduled</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md)">
+                <div><div style="font-size:13px;font-weight:700">Friday–Saturday</div><div style="font-size:11px;color:var(--text-secondary)">+40% water due to heat stress</div></div>
+                <span class="badge amber">Adjust ⚠️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hourly Forecast -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">🕐 Hourly Forecast — Next 12 Hours</div></div>
+        <div id="hourly-strip" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+const { WeatherData, showToast } = window.AgroApp;
+
+// 7-Day Forecast Cards
+const fcEl = document.getElementById('forecast-cards');
+fcEl.innerHTML = WeatherData.forecast.map((d,i)=>`
+  <div class="forecast-card ${i===0?'today':''}">
+    <div style="font-size:12px;font-weight:700;color:${i===0?'var(--clr-primary)':'var(--text-muted)'};margin-bottom:8px">${d.day}</div>
+    <div style="font-size:32px;margin:8px 0">${d.icon}</div>
+    <div style="font-size:18px;font-weight:900;color:var(--text-bright)">${d.hi}°</div>
+    <div style="font-size:12px;color:var(--text-muted)">${d.lo}°</div>
+    <div style="font-size:11px;color:#60a5fa;margin-top:6px;font-weight:700">💧${d.rain}%</div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${d.label}</div>
+  </div>
+`).join('');
+
+// Temp Chart
+const labels = WeatherData.forecast.map(d=>d.day);
+const hi = WeatherData.forecast.map(d=>d.hi);
+const lo = WeatherData.forecast.map(d=>d.lo);
+const tCtx = document.getElementById('tempChart').getContext('2d');
+const tGrad = tCtx.createLinearGradient(0,0,0,200); tGrad.addColorStop(0,'rgba(245,158,11,0.3)'); tGrad.addColorStop(1,'rgba(245,158,11,0)');
+new Chart(tCtx,{type:'line',data:{labels,datasets:[
+  {label:'High °C',data:hi,borderColor:'#f59e0b',borderWidth:2.5,backgroundColor:tGrad,fill:true,tension:0.4,pointBackgroundColor:'#f59e0b',pointRadius:5},
+  {label:'Low °C', data:lo,borderColor:'#60a5fa',borderWidth:2,fill:false,tension:0.4,pointRadius:4,pointBackgroundColor:'#60a5fa'}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>v+'°C'}}}}});
+
+// Rain Chart
+const rain = WeatherData.forecast.map(d=>d.rain);
+const rCtx = document.getElementById('rainChart').getContext('2d');
+const rGrad = rCtx.createLinearGradient(0,0,0,200); rGrad.addColorStop(0,'rgba(59,130,246,0.6)'); rGrad.addColorStop(1,'rgba(59,130,246,0.1)');
+new Chart(rCtx,{type:'bar',data:{labels,datasets:[{label:'Rain Probability %',data:rain,backgroundColor:rain.map(v=>v>70?'rgba(59,130,246,0.8)':'rgba(59,130,246,0.4)'),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'}},y:{grid:{color:'rgba(255,255,255,0.05)'},max:100,ticks:{callback:v=>v+'%'}}}}});
+
+// Calendar
+const calEvents = {4:'rain',7:'event',11:'rain',12:'rain',13:'alert',15:'event',18:'rain',20:'event',25:'alert',28:'event'};
+const calEl = document.getElementById('cal-grid');
+// May 2026 starts on Friday (day offset 5 from Sun)
+for(let i=0;i<5;i++) calEl.innerHTML += `<div></div>`;
+for(let d=1;d<=31;d++) {
+  const cls = calEvents[d] || '';
+  calEl.innerHTML += `<div class="cal-day ${cls}"><div class="cal-day-num">${d}</div><div class="cal-day-icon">${cls==='rain'?'🌧️':cls==='event'?'🌾':cls==='alert'?'⚠️':''}</div></div>`;
+}
+
+// Hourly
+const hourEl = document.getElementById('hourly-strip');
+const icons = ['⛅','🌤️','☀️','☀️','🌤️','⛅','🌦️','🌧️','🌧️','🌦️','⛅','🌤️'];
+for(let h=0;h<12;h++){
+  const hour = (17+h)%24;
+  const label = `${String(hour).padStart(2,'0')}:00`;
+  const temp = 32 - h*0.5 + Math.sin(h)*2;
+  hourEl.innerHTML += `<div style="flex-shrink:0;text-align:center;padding:14px 12px;background:var(--bg-glass-light);border:1px solid var(--border-card);border-radius:var(--radius-md);min-width:72px">
+    <div style="font-size:11px;font-weight:600;color:var(--text-muted)">${label}</div>
+    <div style="font-size:26px;margin:8px 0">${icons[h]}</div>
+    <div style="font-size:14px;font-weight:800;color:var(--text-primary)">${Math.round(temp)}°</div>
+    <div style="font-size:10px;color:#60a5fa;margin-top:4px">💧${Math.round(20+h*4)}%</div>
+  </div>`;
+}
+</script>
+</body>
+</html>

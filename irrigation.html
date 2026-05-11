@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Irrigation Control — AgroSphere</title>
+  <meta name="description" content="Smart irrigation control system - remote motor control, auto scheduling, water level monitoring and usage analytics." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .motor-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: all 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .motor-card.on {
+      border-color: rgba(0,212,170,0.4);
+      box-shadow: 0 0 30px rgba(0,212,170,0.12);
+    }
+    .motor-card.on::before {
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--clr-primary),var(--clr-accent));
+    }
+    .motor-card.off { opacity: 0.7; }
+    .motor-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+    }
+    .motor-icon.on { background: rgba(0,212,170,0.15); box-shadow: 0 0 25px rgba(0,212,170,0.3); animation: glow-pulse 2s infinite; }
+    .motor-icon.off{ background: var(--bg-glass-light); }
+    .motor-name { font-size: 16px; font-weight: 800; color: var(--text-bright); margin-bottom: 4px; }
+    .motor-zone { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
+    .motor-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .ms-item { background: var(--bg-glass-light); padding: 8px; border-radius: var(--radius-sm); text-align: center; }
+    .ms-val { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+    .ms-lbl { font-size: 10px; color: var(--text-muted); }
+    .motor-toggle-btn {
+      width: 100%; padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 800;
+      cursor: pointer; border: none;
+      font-family: var(--font-body);
+      transition: all 0.3s;
+    }
+    .motor-toggle-btn.on  { background: linear-gradient(135deg,var(--clr-danger),#dc2626); color: white; }
+    .motor-toggle-btn.off { background: linear-gradient(135deg,var(--clr-primary),var(--clr-accent)); color: white; }
+    .tank-visual {
+      position: relative; width: 80px; height: 120px;
+      border: 2px solid var(--border-card);
+      border-radius: 8px; overflow: hidden;
+      margin: 0 auto 8px;
+    }
+    .tank-fill {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      transition: height 1s ease; border-radius: 0 0 6px 6px;
+    }
+    .schedule-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-glass-light);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md); margin-bottom: 8px;
+    }
+    .schedule-row.active { border-color: rgba(0,212,170,0.3); background: rgba(0,212,170,0.05); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item active" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">💧 Irrigation Control</div><div class="topbar-sub">Remote motor control · Auto scheduling · Water analytics</div></div>
+      <div class="topbar-actions">
+        <div class="status-pill"><div class="status-dot"></div>2 Motors Running</div>
+        <button class="btn-secondary" onclick="stopAll()">⏹ Stop All</button>
+        <button class="btn-primary" onclick="autoSchedule()">🤖 Auto Schedule</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- KPIs -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="metric-card"><div class="mc-icon green">🚿</div><div class="mc-info"><div class="mc-value">4,820 L</div><div class="mc-label">Water Used Today</div><div class="mc-change down">↓ 12% vs avg</div></div></div>
+        <div class="metric-card"><div class="mc-icon blue">⚡</div><div class="mc-info"><div class="mc-value">2 / 4</div><div class="mc-label">Motors Active</div><div class="mc-change neutral">Running 3.4 hrs</div></div></div>
+        <div class="metric-card"><div class="mc-icon green">💰</div><div class="mc-info"><div class="mc-value">₹1,240</div><div class="mc-label">Water Cost Saved</div><div class="mc-change up">↑ AI optimization</div></div></div>
+        <div class="metric-card"><div class="mc-icon amber">🌡️</div><div class="mc-info"><div class="mc-value">6.8 hrs</div><div class="mc-label">Next Auto-Schedule</div><div class="mc-change neutral">5:30 AM Tomorrow</div></div></div>
+      </div>
+
+      <!-- Motor Controls -->
+      <div class="section-title" style="margin-bottom:16px">⚡ Motor Control Panel <span style="font-size:12px;color:var(--clr-danger);font-weight:600;margin-left:8px">Secure · OTP Verified</span></div>
+      <div id="motor-grid" class="grid-4" style="margin-bottom:24px"></div>
+
+      <!-- Tanks + Usage -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- Tank Levels -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">🪣 Water Tank Levels</div><span class="badge green">Live</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:end">
+            <div id="tank-display"></div>
+          </div>
+        </div>
+
+        <!-- Usage Chart -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Daily Water Usage (Litres)</div><span class="card-action">Export CSV</span></div>
+          <canvas id="usageChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Schedule + Alerts -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- Auto Schedule -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">📅 Irrigation Schedule</div><button class="btn-secondary" style="padding:6px 14px;font-size:12px" onclick="addSchedule()">+ Add</button></div>
+          <div id="schedule-list"></div>
+        </div>
+
+        <!-- Smart Alerts -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔔 Water Alerts</div><span class="badge red">3 Active</span></div>
+          <div class="alert-item critical"><div class="alert-icon">🔴</div><div class="alert-content"><div class="alert-title">Tank B — Critical Level (18%)</div><div class="alert-desc">Borewell #2 tank nearly empty. Activate refill pump immediately.</div></div></div>
+          <div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-content"><div class="alert-title">Pipe Pressure Drop — East Field</div><div class="alert-desc">Pressure dropped 18%. Possible leak or blockage. Inspect line 4.</div></div></div>
+          <div class="alert-item warning"><div class="alert-icon">⚡</div><div class="alert-content"><div class="alert-title">Motor Overload Risk — Main Pump</div><div class="alert-desc">Motor running 4.2 hrs continuously. Auto-rest triggered in 20 min.</div></div></div>
+          <div class="alert-item success"><div class="alert-icon">🌧️</div><div class="alert-content"><div class="alert-title">Rain Detected — Schedule Paused</div><div class="alert-desc">Tonight's 10 PM irrigation cancelled. Estimated saving: 3,800L.</div></div></div>
+        </div>
+      </div>
+
+      <!-- Pipe Network Status -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">🔧 Pipe Network Status</div><span class="badge green">System Healthy</span></div>
+        <table class="data-table">
+          <thead><tr><th>Line</th><th>Zone</th><th>Pressure (PSI)</th><th>Flow (L/min)</th><th>Length (m)</th><th>Status</th><th>Last Check</th></tr></thead>
+          <tbody id="pipe-table"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const { MotorState, makeGradient, showToast } = window.AgroApp;
+
+  // ── Motors ───────────────────────────────────────────────────────────────────
+  function renderMotors() {
+    const el = document.getElementById('motor-grid');
+    el.innerHTML = MotorState.motors.map(m => `
+      <div class="motor-card ${m.on ? 'on' : 'off'}" id="mc-${m.id}">
+        <div class="motor-icon ${m.on ? 'on' : 'off'}">${m.on ? '⚡' : '🔌'}</div>
+        <div class="motor-name">${m.name}</div>
+        <div class="motor-zone">📍 ${m.zone}</div>
+        <div class="motor-stats">
+          <div class="ms-item"><div class="ms-val">${m.on ? Math.floor(m.runtime + (Date.now()/60000%60)).toString().padStart(2,'0') + ' min' : '--'}</div><div class="ms-lbl">Runtime</div></div>
+          <div class="ms-item"><div class="ms-val">${m.on ? Math.round(18 + Math.random()*8) + ' L/m' : '0 L/m'}</div><div class="ms-lbl">Flow Rate</div></div>
+          <div class="ms-item"><div class="ms-val">${m.on ? Math.round(42 + Math.random()*10) + ' PSI' : '--'}</div><div class="ms-lbl">Pressure</div></div>
+          <div class="ms-item"><div class="ms-val">${m.on ? Math.round(Math.random()*5) + '.'+Math.round(Math.random()*9)+' A' : '--'}</div><div class="ms-lbl">Current</div></div>
+        </div>
+        <button class="motor-toggle-btn ${m.on ? 'on' : 'off'}" onclick="toggleM(${m.id})">
+          ${m.on ? '⏹ TURN OFF' : '▶ TURN ON'}
+        </button>
+      </div>
+    `).join('');
+  }
+
+  window.toggleM = (id) => {
+    const m = MotorState.toggle(id);
+    showToast(`${m.name} turned ${m.on ? 'ON ▶' : 'OFF ⏹'}`, m.on ? 'success' : 'info');
+    renderMotors();
+  };
+
+  renderMotors();
+
+  // ── Tanks ────────────────────────────────────────────────────────────────────
+  const tanks = [
+    { name: 'Tank A', pct: 76, cap: '10,000L', color: '#22c55e' },
+    { name: 'Tank B', pct: 18, cap: '8,000L',  color: '#ef4444' },
+    { name: 'Canal',  pct: 62, cap: 'Flow',     color: '#00d4aa' },
+    { name: 'Borewell',pct:45, cap: 'Active',   color: '#f59e0b' },
+  ];
+  document.getElementById('tank-display').parentElement.innerHTML = `
+    <div class="card-header"><div class="card-title">🪣 Water Tank Levels</div><span class="badge green">Live</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:end;text-align:center">
+      ${tanks.map(t => `
+        <div>
+          <div style="font-size:20px;font-weight:800;color:${t.color};margin-bottom:4px">${t.pct}%</div>
+          <div class="tank-visual">
+            <div class="tank-fill" style="height:${t.pct}%;background:${t.color}33;border-top:2px solid ${t.color}"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${t.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${t.cap}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // ── Usage Chart ──────────────────────────────────────────────────────────────
+  const uCtx = document.getElementById('usageChart').getContext('2d');
+  new Chart(document.getElementById('usageChart'), {
+    type: 'line',
+    data: {
+      labels: ['6AM','8AM','10AM','12PM','2PM','4PM','6PM','8PM'],
+      datasets: [{
+        label: 'Water Used (L)',
+        data: [820,1240,980,1560,1100,760,820,540],
+        borderColor: '#00d4aa', borderWidth: 2.5,
+        backgroundColor: makeGradient(uCtx,'rgba(0,212,170,0.3)','rgba(0,212,170,0)'),
+        fill: true, tension: 0.4,
+        pointBackgroundColor: '#00d4aa', pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + 'L' } } }
+    }
+  });
+
+  // ── Schedule ─────────────────────────────────────────────────────────────────
+  const schedules = [
+    { time: '5:30 AM', zone: 'North Field – Paddy', duration: '45 min', trigger: 'Auto (Moisture < 60%)', active: true },
+    { time: '7:00 AM', zone: 'East Field – Maize',  duration: '30 min', trigger: 'Daily Schedule',         active: true },
+    { time: '10:00 PM',zone: 'South Field',          duration: '20 min', trigger: 'Daily Schedule',         active: false },
+    { time: '6:00 AM', zone: 'West Garden – Drip',   duration: '60 min', trigger: 'Auto (Soil pH < 7)',      active: true },
+  ];
+  document.getElementById('schedule-list').innerHTML = schedules.map(s => `
+    <div class="schedule-row ${s.active ? 'active' : ''}">
+      <div style="font-size:20px">${s.active ? '⏰' : '⏸️'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${s.time} · ${s.zone}</div>
+        <div style="font-size:11px;color:var(--text-secondary)">${s.trigger} · ${s.duration}</div>
+      </div>
+      <label class="toggle"><input type="checkbox" ${s.active ? 'checked' : ''} onchange="showToast('Schedule updated','info')"><span class="toggle-slider"></span></label>
+    </div>
+  `).join('');
+
+  function showToast(m, t) { window.AgroApp.showToast(m, t); }
+
+  // ── Pipe Table ───────────────────────────────────────────────────────────────
+  const pipes = [
+    { id: 'L1', zone: 'North Field', psi: 48, flow: 24, len: 320, status: 'Normal' },
+    { id: 'L2', zone: 'East Field',  psi: 31, flow: 18, len: 280, status: 'Low Pressure' },
+    { id: 'L3', zone: 'South Field', psi: 45, flow: 22, len: 410, status: 'Normal' },
+    { id: 'L4', zone: 'West Garden', psi: 52, flow: 12, len: 150, status: 'Normal' },
+  ];
+  document.getElementById('pipe-table').innerHTML = pipes.map(p => `
+    <tr>
+      <td style="font-weight:700">${p.id}</td>
+      <td>${p.zone}</td>
+      <td>${p.psi}</td>
+      <td>${p.flow}</td>
+      <td>${p.len}m</td>
+      <td><span class="badge ${p.status === 'Normal' ? 'green' : 'amber'}">${p.status}</span></td>
+      <td style="color:var(--text-muted)">2 min ago</td>
+    </tr>
+  `).join('');
+});
+
+window.stopAll = () => {
+  window.AgroApp.MotorState.motors.forEach(m => m.on = false);
+  window.AgroApp.showToast('All motors stopped safely', 'warning');
+  location.reload();
+};
+
+window.autoSchedule = () => {
+  window.AgroApp.showToast('AI auto-schedule generated for next 7 days', 'success');
+};
+
+window.addSchedule = () => {
+  window.AgroApp.showToast('Schedule editor coming soon', 'info');
+};
+</script>
+</body>
+</html>

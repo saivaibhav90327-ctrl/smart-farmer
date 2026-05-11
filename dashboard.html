@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — AgroSphere</title>
+  <meta name="description" content="Real-time farm monitoring dashboard with IoT sensors, satellite data, crop health, and irrigation control." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛰️</div>
+      <div>
+        <div class="brand-text">AGROSPHERE</div>
+        <div class="brand-version">AI PLATFORM v3.2</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item active" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+
+      <div class="nav-group-label" style="margin-top:12px">Insights</div>
+      <a class="nav-item" href="#"><span class="nav-icon">📈</span> Analytics</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🤖</span> AI Assistant</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🔔</span> Alerts <span class="nav-badge">4</span></a>
+
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🏛️</span> Gov Schemes</a>
+      <a class="nav-item" href="#"><span class="nav-icon">💰</span> Finance</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🚁</span> Drone View</a>
+
+      <div class="nav-group-label" style="margin-top:12px">Settings</div>
+      <a class="nav-item" href="#"><span class="nav-icon">⚙️</span> Settings</a>
+      <a class="nav-item" href="index.html"><span class="nav-icon">🚪</span> Logout</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">R</div>
+        <div>
+          <div class="user-name">Ramaiah Goud</div>
+          <div class="user-role">🌿 Farmer · Telangana</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Farm Dashboard</div>
+        <div class="topbar-sub">Ranga Reddy District · 45.6 Acres · Last sync: 2 min ago</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="status-pill"><div class="status-dot"></div>All Systems Online</div>
+        <button class="topbar-btn" onclick="refreshDashboard()" title="Refresh">🔄</button>
+        <button class="topbar-btn" title="Notifications">🔔</button>
+        <button class="topbar-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- KPI Metrics Row -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="metric-card" onclick="location.href='iot.html'">
+          <div class="mc-icon green">💧</div>
+          <div class="mc-info">
+            <div class="mc-value" id="kpi-moisture">68%</div>
+            <div class="mc-label">Avg Soil Moisture</div>
+            <div class="mc-change up">↑ 5% from yesterday</div>
+          </div>
+        </div>
+        <div class="metric-card" onclick="location.href='irrigation.html'">
+          <div class="mc-icon blue">🚿</div>
+          <div class="mc-info">
+            <div class="mc-value" id="kpi-water">4,820 L</div>
+            <div class="mc-label">Water Used Today</div>
+            <div class="mc-change down">↓ 12% vs avg</div>
+          </div>
+        </div>
+        <div class="metric-card" onclick="location.href='satellite.html'">
+          <div class="mc-icon green">🌿</div>
+          <div class="mc-info">
+            <div class="mc-value" id="kpi-ndvi">0.74</div>
+            <div class="mc-label">NDVI Health Index</div>
+            <div class="mc-change up">↑ 0.03 this week</div>
+          </div>
+        </div>
+        <div class="metric-card" onclick="location.href='weather.html'">
+          <div class="mc-icon amber">☁️</div>
+          <div class="mc-info">
+            <div class="mc-value" id="kpi-rain">72%</div>
+            <div class="mc-label">Rain Probability</div>
+            <div class="mc-change neutral">Tonight, 8 PM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Chart + Alerts -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- Water Usage Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Water Usage — Weekly</div>
+            <div style="display:flex;gap:8px">
+              <span class="badge green">Optimized</span>
+              <span class="card-action">Export</span>
+            </div>
+          </div>
+          <canvas id="waterChart" height="200"></canvas>
+        </div>
+
+        <!-- Alerts Panel -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔔 Smart Alerts</div>
+            <span class="badge red">4 Active</span>
+          </div>
+          <div id="alerts-list">
+            <div class="alert-item critical">
+              <div class="alert-icon">🔴</div>
+              <div class="alert-content">
+                <div class="alert-title">Low Water Level — Borewell #2</div>
+                <div class="alert-desc">Tank at 18% capacity. Refill recommended immediately.</div>
+              </div>
+              <div class="alert-time">2m ago</div>
+            </div>
+            <div class="alert-item warning">
+              <div class="alert-icon">⚠️</div>
+              <div class="alert-content">
+                <div class="alert-title">Dry Soil — North-East Field</div>
+                <div class="alert-desc">Soil moisture dropped to 32%. Irrigation scheduled in 45 min.</div>
+              </div>
+              <div class="alert-time">8m ago</div>
+            </div>
+            <div class="alert-item warning">
+              <div class="alert-icon">🌡️</div>
+              <div class="alert-content">
+                <div class="alert-title">High Temperature Alert</div>
+                <div class="alert-desc">38°C expected. Increase irrigation frequency for paddy crop.</div>
+              </div>
+              <div class="alert-time">22m ago</div>
+            </div>
+            <div class="alert-item info">
+              <div class="alert-icon">💡</div>
+              <div class="alert-content">
+                <div class="alert-title">AI Recommendation</div>
+                <div class="alert-desc">Apply potash fertilizer to 12-acre south field this week.</div>
+              </div>
+              <div class="alert-time">1h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Soil + Crop + Motor -->
+      <div class="grid-3" style="margin-bottom:24px">
+
+        <!-- Soil Health -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌱 Soil Health</div>
+            <span class="badge green">Good</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="progress-wrap">
+              <div class="progress-label-row"><span>Moisture</span><span>68%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-label-row"><span>pH Level</span><span>6.8</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-label-row"><span>Nitrogen (N)</span><span>45%</span></div>
+              <div class="progress-bar"><div class="progress-fill amber" style="width:45%"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-label-row"><span>Phosphorus (P)</span><span>62%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:62%"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-label-row"><span>Potassium (K)</span><span>38%</span></div>
+              <div class="progress-bar"><div class="progress-fill amber" style="width:38%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Crop Status -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌾 Crop Status</div>
+            <a href="crops.html" class="card-action">AI Advice →</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-glass-light);border-radius:var(--radius-md);border:1px solid var(--border-card)">
+              <span style="font-size:28px">🌾</span>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:700;color:var(--text-primary)">Paddy (Rice)</div>
+                <div style="font-size:12px;color:var(--text-secondary)">North Field · 18 acres</div>
+                <div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill" style="width:68%"></div></div></div>
+                <div style="font-size:11px;color:var(--clr-primary);margin-top:3px">68% Growth · Harvest in 42 days</div>
+              </div>
+              <span class="badge green">Good</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-glass-light);border-radius:var(--radius-md);border:1px solid var(--border-card)">
+              <span style="font-size:28px">🌽</span>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:700;color:var(--text-primary)">Maize</div>
+                <div style="font-size:12px;color:var(--text-secondary)">East Field · 12 acres</div>
+                <div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill amber" style="width:42%"></div></div></div>
+                <div style="font-size:11px;color:var(--clr-warning);margin-top:3px">42% Growth · Needs water</div>
+              </div>
+              <span class="badge amber">Watch</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-glass-light);border-radius:var(--radius-md);border:1px solid var(--border-card)">
+              <span style="font-size:28px">🥜</span>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:700;color:var(--text-primary)">Groundnut</div>
+                <div style="font-size:12px;color:var(--text-secondary)">South Field · 15 acres</div>
+                <div style="margin-top:6px"><div class="progress-bar" style="height:5px"><div class="progress-fill" style="width:85%"></div></div></div>
+                <div style="font-size:11px;color:var(--clr-success);margin-top:3px">85% Growth · Ready in 8 days</div>
+              </div>
+              <span class="badge green">Excellent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motor Control Quick Panel -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Motor Control</div>
+            <a href="irrigation.html" class="card-action">Full Panel →</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div id="motor-cards"></div>
+          </div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-subtle)">
+            <div class="card-title" style="margin-bottom:12px;font-size:13px">💦 Tank Levels</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="text-align:center;padding:14px;background:var(--bg-glass-light);border-radius:var(--radius-md);border:1px solid var(--border-card)">
+                <div style="font-size:22px;font-weight:800;color:var(--clr-success)">76%</div>
+                <div style="font-size:11px;color:var(--text-muted)">Tank A</div>
+              </div>
+              <div style="text-align:center;padding:14px;background:var(--bg-glass-light);border-radius:var(--radius-md);border:1px solid rgba(239,68,68,0.3)">
+                <div style="font-size:22px;font-weight:800;color:var(--clr-danger)">18%</div>
+                <div style="font-size:11px;color:var(--text-muted)">Tank B ⚠️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: NDVI chart + IoT sensors + Yield -->
+      <div class="grid-3" style="margin-bottom:24px">
+
+        <!-- NDVI Trend -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌿 NDVI Trend</div>
+            <a href="satellite.html" class="card-action">Satellite →</a>
+          </div>
+          <canvas id="ndviChart" height="180"></canvas>
+        </div>
+
+        <!-- Live Sensor Readings -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📡 Live Sensors</div>
+            <a href="iot.html" class="card-action">All Sensors →</a>
+          </div>
+          <div id="sensor-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+        </div>
+
+        <!-- Yield Prediction -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 Yield Forecast</div>
+            <span class="badge teal">AI Prediction</span>
+          </div>
+          <canvas id="yieldChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Row 5: Weather strip + AI recommendations -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- 7-day weather -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌦️ 7-Day Weather Forecast</div>
+            <a href="weather.html" class="card-action">Details →</a>
+          </div>
+          <div id="weather-strip" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 AI Recommendations</div>
+            <span class="badge teal">3 New</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="alert-item success">
+              <div class="alert-icon">🌾</div>
+              <div class="alert-content">
+                <div class="alert-title">Sow Rabi crops by Nov 15</div>
+                <div class="alert-desc">AI predicts optimal soil temperature window for wheat and chickpea.</div>
+              </div>
+            </div>
+            <div class="alert-item info">
+              <div class="alert-icon">💧</div>
+              <div class="alert-content">
+                <div class="alert-title">Reduce irrigation by 20% this week</div>
+                <div class="alert-desc">Rain forecast (72%) reduces demand. Save ~960L daily.</div>
+              </div>
+            </div>
+            <div class="alert-item warning">
+              <div class="alert-icon">🐛</div>
+              <div class="alert-content">
+                <div class="alert-title">Pest Risk: Brown Planthopper</div>
+                <div class="alert-desc">High humidity conditions favorable. Apply neem oil spray now.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Activity Log</div>
+          <span class="card-action">View All</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>Location</th>
+              <th>User</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="activity-table"></tbody>
+        </table>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<script src="scripts/app.js"></script>
+<script src="scripts/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agri Marketplace — AgroSphere</title>
+  <meta name="description" content="Agri marketplace for seeds, fertilizers, equipment. Government subsidies, crop insurance and farm loan eligibility." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    .market-tab { padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 700; border: 1px solid var(--border-card); color: var(--text-secondary); transition: all 0.2s; background: none; font-family: var(--font-body); }
+    .market-tab.active { background: linear-gradient(135deg,var(--clr-primary),var(--clr-accent)); color: white; border-color: transparent; box-shadow: 0 4px 15px var(--clr-primary-glow); }
+    .product-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 20px; transition: all 0.3s; cursor: pointer; }
+    .product-card:hover { transform: translateY(-4px); border-color: var(--border-bright); box-shadow: var(--shadow-glow); }
+    .product-img { width: 100%; height: 100px; background: var(--bg-glass-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 52px; margin-bottom: 14px; }
+    .product-price { font-size: 20px; font-weight: 900; color: var(--clr-primary); }
+    .product-name { font-size: 14px; font-weight: 800; color: var(--text-bright); margin: 6px 0 4px; }
+    .product-info { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+    .rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--clr-warning); margin-bottom: 12px; }
+    .scheme-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 20px; transition: all 0.3s; }
+    .scheme-card:hover { border-color: var(--border-bright); }
+    .search-bar { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 16px; flex: 1; }
+    .search-bar input { background: none; border: none; outline: none; color: var(--text-primary); font-size: 14px; font-family: var(--font-body); flex: 1; }
+    .cart-btn { position: relative; }
+    .cart-badge { position: absolute; top: -6px; right: -6px; background: var(--clr-danger); color: white; font-size: 10px; font-weight: 800; padding: 2px 5px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item active" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+      <a class="nav-item" href="#"><span class="nav-icon">🏛️</span> Gov Schemes</a>
+      <a class="nav-item" href="#"><span class="nav-icon">💰</span> Finance</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">🏪 Agri Marketplace</div><div class="topbar-sub">Seeds · Fertilizers · Equipment · Government Schemes · Crop Insurance · Finance</div></div>
+      <div class="topbar-actions">
+        <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search products, schemes..." id="search-input" oninput="filterProducts()" /></div>
+        <div class="cart-btn"><button class="topbar-btn" onclick="openCart()" title="Cart">🛒<span class="cart-badge" id="cart-count">0</span></button></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="metric-card"><div class="mc-icon green">🛒</div><div class="mc-info"><div class="mc-value">1,240+</div><div class="mc-label">Products Available</div><div class="mc-change up">↑ 80 added this week</div></div></div>
+        <div class="metric-card"><div class="mc-icon blue">🏛️</div><div class="mc-info"><div class="mc-value">28</div><div class="mc-label">Active Schemes</div><div class="mc-change neutral">Eligible: 6</div></div></div>
+        <div class="metric-card"><div class="mc-icon amber">🛡️</div><div class="mc-info"><div class="mc-value">₹2.4L</div><div class="mc-label">Insurance Cover</div><div class="mc-change up">↑ Crop insured</div></div></div>
+        <div class="metric-card"><div class="mc-icon green">💰</div><div class="mc-info"><div class="mc-value">₹5L</div><div class="mc-label">Loan Eligible</div><div class="mc-change up">↑ KCC Kisan Card</div></div></div>
+      </div>
+
+      <!-- Category Tabs -->
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="market-tab active" onclick="showCategory('seeds',this)">🌱 Seeds</button>
+        <button class="market-tab" onclick="showCategory('fertilizers',this)">🧪 Fertilizers</button>
+        <button class="market-tab" onclick="showCategory('equipment',this)">🔧 Equipment</button>
+        <button class="market-tab" onclick="showCategory('pesticides',this)">💊 Pesticides</button>
+        <button class="market-tab" onclick="showCategory('schemes',this)">🏛️ Gov Schemes</button>
+        <button class="market-tab" onclick="showCategory('insurance',this)">🛡️ Insurance</button>
+        <button class="market-tab" onclick="showCategory('finance',this)">💰 Finance</button>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="products-section">
+        <div id="product-grid" class="grid-4" style="margin-bottom:24px"></div>
+      </div>
+
+      <!-- Schemes Section (hidden by default) -->
+      <div id="schemes-section" style="display:none">
+        <div id="schemes-grid" class="grid-3" style="margin-bottom:24px"></div>
+      </div>
+
+      <!-- Finance Section (hidden by default) -->
+      <div id="finance-section" style="display:none">
+        <div class="grid-2" style="margin-bottom:24px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">💳 Kisan Credit Card (KCC)</div><span class="badge green">Pre-Approved</span></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(59,130,246,0.08));border:1px solid var(--border-bright);border-radius:var(--radius-lg);padding:24px">
+                <div style="font-size:11px;color:var(--clr-primary);font-weight:700;letter-spacing:1px;margin-bottom:8px">KISAN CREDIT CARD</div>
+                <div style="font-size:28px;font-weight:900;color:var(--text-bright)">₹5,00,000</div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Pre-approved limit · 4% interest p.a.</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:16px">Ramaiah Goud · KCC-TG-2026-XXXX</div>
+              </div>
+              <div class="progress-wrap"><div class="progress-label-row"><span>Utilised</span><span>₹1,80,000 / ₹5,00,000</span></div><div class="progress-bar"><div class="progress-fill" style="width:36%"></div></div></div>
+              <div class="grid-2" style="gap:10px">
+                <button class="btn-primary" style="justify-content:center" onclick="AgroApp.showToast('Apply for KCC at nearest bank','info')">Apply Now</button>
+                <button class="btn-secondary" style="justify-content:center" onclick="AgroApp.showToast('Statement downloaded','success')">Statement</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📊 Loan Eligibility Calculator</div></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Farm Size (acres)</div><input type="range" min="1" max="100" value="45" oninput="calcLoan(this.value)" style="width:100%;accent-color:var(--clr-primary)"></div>
+              <div style="background:var(--bg-glass-light);border:1px solid var(--border-card);border-radius:var(--radius-md);padding:16px;text-align:center">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Estimated Loan Eligibility</div>
+                <div id="loan-amount" style="font-size:36px;font-weight:900;color:var(--clr-primary)">₹5.4L</div>
+                <div style="font-size:12px;color:var(--text-secondary)">Based on 45 acres · Clay Loam · Kharif crop</div>
+              </div>
+              <table class="data-table"><thead><tr><th>Scheme</th><th>Rate</th><th>Tenure</th><th>Eligible</th></tr></thead><tbody>
+                <tr><td>KCC</td><td>4%</td><td>1 yr</td><td><span class="badge green">Yes</span></td></tr>
+                <tr><td>PKVY</td><td>6%</td><td>3 yr</td><td><span class="badge green">Yes</span></td></tr>
+                <tr><td>NHM Loan</td><td>7%</td><td>5 yr</td><td><span class="badge amber">Partial</span></td></tr>
+                <tr><td>FPO Credit</td><td>5%</td><td>2 yr</td><td><span class="badge blue">Apply</span></td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Recommendations Banner -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(0,212,170,0.08),rgba(59,130,246,0.06))">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="font-size:36px">🤖</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:800;color:var(--text-bright);margin-bottom:4px">AI Shopping Recommendations for Your Farm</div>
+            <div style="font-size:13px;color:var(--text-secondary)">Based on your soil pH (6.8), Kharif season, and moisture deficit — AI suggests: Urea 50kg + DAP 50kg + Neem-coated Urea for North Field.</div>
+          </div>
+          <button class="btn-primary" onclick="AgroApp.showToast('AI list added to cart!','success')">🛒 Add AI List to Cart</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+let cart = [];
+let currentCategory = 'seeds';
+
+const products = {
+  seeds: [
+    { name:'Paddy IR-64 (2kg)',       emoji:'🌾', price:'₹480',  unit:'per bag', rating:4.8, reviews:2140, seller:'State Seeds Corp',  badge:'bestseller' },
+    { name:'Maize DKC 9108 (1kg)',    emoji:'🌽', price:'₹820',  unit:'per bag', rating:4.7, reviews:1820, seller:'Dekalb Seeds',       badge:'ai-pick' },
+    { name:'Cotton CH-1738 (450g)',   emoji:'🌸', price:'₹1,200',unit:'per bag', rating:4.6, reviews:943,  seller:'Mahyco Seeds',       badge:'' },
+    { name:'Groundnut TMV-2 (30kg)',  emoji:'🥜', price:'₹1,800',unit:'per bag', rating:4.5, reviews:721,  seller:'TNAU',              badge:'' },
+    { name:'Wheat GW-322 (5kg)',      emoji:'🌿', price:'₹320',  unit:'per bag', rating:4.9, reviews:3200, seller:'BARI Punjab',        badge:'bestseller' },
+    { name:'Chickpea JG-14 (3kg)',    emoji:'🫘', price:'₹560',  unit:'per bag', rating:4.6, reviews:890,  seller:'JNKVV',             badge:'' },
+    { name:'Sunflower KBSH-44 (4kg)',emoji:'🌻', price:'₹640',  unit:'per bag', rating:4.4, reviews:540,  seller:'Karnataka Seeds',    badge:'' },
+    { name:'Tomato Hybrid (10g)',     emoji:'🍅', price:'₹280',  unit:'per pkt', rating:4.7, reviews:1640, seller:'Syngenta India',     badge:'ai-pick' },
+  ],
+  fertilizers: [
+    { name:'Urea (50kg bag)',         emoji:'💊', price:'₹340',  unit:'per bag', rating:4.9, reviews:5200, seller:'IFFCO',             badge:'bestseller' },
+    { name:'DAP 18-46-0 (50kg)',      emoji:'🧪', price:'₹1,480',unit:'per bag', rating:4.8, reviews:4100, seller:'IFFCO',             badge:'bestseller' },
+    { name:'NPK 15-15-15 (50kg)',     emoji:'🔬', price:'₹1,200',unit:'per bag', rating:4.7, reviews:2800, seller:'Coromandel',        badge:'ai-pick' },
+    { name:'MOP Potash (50kg)',       emoji:'🪨', price:'₹980',  unit:'per bag', rating:4.6, reviews:1600, seller:'IPL',               badge:'' },
+    { name:'Neem-Coated Urea (50kg)',emoji:'🌿', price:'₹420',  unit:'per bag', rating:4.8, reviews:3100, seller:'Kribhco',           badge:'ai-pick' },
+    { name:'Sulphur 90% (25kg)',      emoji:'🟡', price:'₹720',  unit:'per bag', rating:4.5, reviews:920,  seller:'Coromandel',        badge:'' },
+    { name:'Zinc Sulphate (25kg)',    emoji:'⚡', price:'₹840',  unit:'per bag', rating:4.7, reviews:1200, seller:'FACT',              badge:'' },
+    { name:'Boron 20% (1kg)',         emoji:'🔵', price:'₹280',  unit:'per pkt', rating:4.4, reviews:480,  seller:'Multiplex',         badge:'' },
+  ],
+  equipment: [
+    { name:'ESP32 Soil Sensor Kit',   emoji:'📡', price:'₹2,400',unit:'per unit',rating:4.8, reviews:820,  seller:'AgroSphere IoT',    badge:'ai-pick' },
+    { name:'Drip Irrigation Set (1ac)',emoji:'💧',price:'₹8,500',unit:'per acre',rating:4.7, reviews:1640, seller:'Jain Irrigation',   badge:'bestseller' },
+    { name:'Solar Water Pump (1HP)',  emoji:'☀️', price:'₹22,000',unit:'per unit',rating:4.6, reviews:640,  seller:'Tata Power',        badge:'' },
+    { name:'Sprinkler Set (1ac)',     emoji:'🚿', price:'₹4,200',unit:'per acre',rating:4.5, reviews:920,  seller:'Rain Bird India',   badge:'' },
+    { name:'Soil pH Meter',           emoji:'🔬', price:'₹1,200',unit:'per unit',rating:4.7, reviews:2100, seller:'Lutron',            badge:'ai-pick' },
+    { name:'Weather Station Mini',    emoji:'🌦️', price:'₹6,800',unit:'per unit',rating:4.8, reviews:480,  seller:'Davis Instruments', badge:'' },
+    { name:'Drone Crop Sprayer 10L',  emoji:'🚁', price:'₹1,80,000',unit:'per unit',rating:4.9, reviews:340,seller:'XAG India',        badge:'bestseller' },
+    { name:'GSM Motor Controller',    emoji:'⚡', price:'₹3,200',unit:'per unit',rating:4.6, reviews:1200, seller:'AgroSphere IoT',    badge:'ai-pick' },
+  ],
+  pesticides: [
+    { name:'Imidacloprid 17.8% SL',  emoji:'🐛', price:'₹380',  unit:'per 250ml',rating:4.7,reviews:1840, seller:'Bayer CropScience',badge:'bestseller' },
+    { name:'Mancozeb 75% WP (1kg)',   emoji:'🍂', price:'₹240',  unit:'per kg',  rating:4.6, reviews:2200, seller:'Dhanuka',           badge:'' },
+    { name:'Neem Oil 3000ppm (1L)',   emoji:'🌿', price:'₹320',  unit:'per litre',rating:4.8,reviews:3100, seller:'Agro-Bio',          badge:'ai-pick' },
+    { name:'Lambda-cyhalothrin 5%',   emoji:'💊', price:'₹480',  unit:'per 250ml',rating:4.5,reviews:920,  seller:'Syngenta',          badge:'' },
+    { name:'Tricyclazole 75% WP',     emoji:'🔴', price:'₹560',  unit:'per 100g', rating:4.7,reviews:1100, seller:'Crystal Crop',      badge:'' },
+    { name:'Hexaconazole 5% SC',      emoji:'🟣', price:'₹620',  unit:'per 200ml',rating:4.6,reviews:740,  seller:'PI Industries',     badge:'' },
+    { name:'Thiamethoxam 25% WG',     emoji:'🟡', price:'₹840',  unit:'per 100g', rating:4.8,reviews:1600, seller:'Syngenta',          badge:'bestseller' },
+    { name:'Chlorpyrifos 50% EC',     emoji:'🟠', price:'₹280',  unit:'per 500ml',rating:4.4,reviews:1200, seller:'Coromandel',        badge:'' },
+  ]
+};
+
+const schemes = [
+  { name:'PM-KISAN', ministry:'Agri Ministry', benefit:'₹6,000/year direct transfer', eligible:true,  deadline:'Dec 2026',  emoji:'🏛️' },
+  { name:'PMFBY – Crop Insurance', ministry:'Finance Ministry', benefit:'Premium 2% of sum insured', eligible:true, deadline:'Jul 2026', emoji:'🛡️' },
+  { name:'Pradhan Mantri Krishi Sinchai', ministry:'Jal Shakti', benefit:'Drip & Sprinkler 55% subsidy', eligible:true, deadline:'Mar 2027', emoji:'💧' },
+  { name:'Rythu Bandhu (TS)', ministry:'Telangana Govt', benefit:'₹10,000/acre/season', eligible:true, deadline:'Jun 2026', emoji:'🌾' },
+  { name:'PKVY Organic Mission', ministry:'Agri Ministry', benefit:'₹50,000/ha over 3 yrs', eligible:false, deadline:'Aug 2026', emoji:'🌿' },
+  { name:'Soil Health Card', ministry:'Agri Ministry', benefit:'Free soil testing + advisory', eligible:true, deadline:'Ongoing', emoji:'🔬' },
+];
+
+function renderProducts(cat) {
+  const items = products[cat] || [];
+  document.getElementById('product-grid').innerHTML = items.map(p=>`
+    <div class="product-card">
+      <div class="product-img">${p.emoji}</div>
+      ${p.badge === 'bestseller' ? '<div style="font-size:10px;font-weight:800;color:var(--clr-warning);letter-spacing:1px;margin-bottom:4px">🏆 BESTSELLER</div>' : p.badge === 'ai-pick' ? '<div style="font-size:10px;font-weight:800;color:var(--clr-primary);letter-spacing:1px;margin-bottom:4px">⭐ AI PICK</div>' : ''}
+      <div class="product-name">${p.name}</div>
+      <div class="product-info">Sold by: ${p.seller} · ${p.unit}</div>
+      <div class="rating">⭐ ${p.rating} <span style="color:var(--text-muted)">(${p.reviews.toLocaleString()} reviews)</span></div>
+      <div class="product-price">${p.price}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-primary" style="flex:1;padding:10px;font-size:12px;justify-content:center" onclick="addToCart('${p.name}','${p.price}')">🛒 Add to Cart</button>
+        <button class="btn-secondary" style="padding:10px;font-size:12px" onclick="AgroApp.showToast('Opening product details','info')">👁️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSchemes() {
+  document.getElementById('schemes-grid').innerHTML = schemes.map(s=>`
+    <div class="scheme-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="font-size:32px">${s.emoji}</div>
+        <span class="badge ${s.eligible ? 'green' : 'red'}">${s.eligible ? '✓ Eligible' : '✗ Not Eligible'}</span>
+      </div>
+      <div style="font-size:15px;font-weight:800;color:var(--text-bright);margin-bottom:4px">${s.name}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${s.ministry}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--clr-primary);margin-bottom:8px">💰 ${s.benefit}</div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">📅 Deadline: ${s.deadline}</div>
+      <button class="btn-${s.eligible ? 'primary' : 'secondary'}" style="width:100%;justify-content:center;padding:10px;font-size:12px" onclick="AgroApp.showToast('Opening ${s.name} application','${s.eligible ? 'success' : 'info'}')">
+        ${s.eligible ? '📋 Apply Now' : 'ℹ️ Check Eligibility'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function showCategory(cat, btn) {
+  document.querySelectorAll('.market-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCategory = cat;
+  const isSchemes = cat === 'schemes';
+  const isFinance = cat === 'finance';
+  const isInsurance = cat === 'insurance';
+  document.getElementById('products-section').style.display = (isSchemes || isFinance || isInsurance) ? 'none' : 'block';
+  document.getElementById('schemes-section').style.display = isSchemes ? 'block' : 'none';
+  document.getElementById('finance-section').style.display = (isFinance || isInsurance) ? 'block' : 'none';
+  if (isSchemes) renderSchemes();
+  else if (!isFinance && !isInsurance) renderProducts(cat);
+}
+
+function addToCart(name, price) {
+  cart.push({name, price});
+  document.getElementById('cart-count').textContent = cart.length;
+  AgroApp.showToast(`${name} added to cart`, 'success');
+}
+
+function openCart() {
+  if (cart.length === 0) { AgroApp.showToast('Your cart is empty', 'info'); return; }
+  AgroApp.showToast(`Cart: ${cart.length} items. Checkout coming soon!`, 'info');
+}
+
+function filterProducts() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  document.querySelectorAll('.product-card').forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function calcLoan(acres) {
+  const amt = Math.round(acres * 12000);
+  document.getElementById('loan-amount').textContent = '₹' + (amt >= 100000 ? (amt/100000).toFixed(1) + 'L' : (amt/1000) + 'K');
+}
+
+// Init
+renderProducts('seeds');
+</script>
+</body>
+</html>

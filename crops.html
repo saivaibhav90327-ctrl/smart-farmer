@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Crop Advisor — AgroSphere</title>
+  <meta name="description" content="AI-powered crop recommendation system with season-wise planning, fertilizer schedules, pest prevention and yield predictions." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .season-tab { padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 700; border: 1px solid var(--border-card); color: var(--text-secondary); transition: all 0.2s; }
+    .season-tab.active { background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent)); color: white; border-color: transparent; box-shadow: 0 4px 15px var(--clr-primary-glow); }
+    .crop-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 20px;
+      cursor: pointer; transition: all 0.3s var(--ease);
+    }
+    .crop-card:hover { transform: translateY(-4px); border-color: var(--border-bright); box-shadow: var(--shadow-glow); }
+    .crop-card.recommended { border-color: rgba(0,212,170,0.4); box-shadow: 0 0 20px rgba(0,212,170,0.1); }
+    .crop-emoji { font-size: 42px; margin-bottom: 12px; display: block; }
+    .ai-score-ring { position: relative; width: 60px; height: 60px; }
+    .score-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 14px; font-weight: 800; color: var(--clr-primary); }
+    .filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-select {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-md);
+      font-size: 13px; font-family: var(--font-body); cursor: pointer;
+    }
+    .pest-card { background: var(--bg-glass-light); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item active" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">🌾 AI Crop Advisor</div><div class="topbar-sub">Season recommendations · Fertilizer plans · Pest prevention · Yield forecasts</div></div>
+      <div class="topbar-actions">
+        <button class="btn-primary" onclick="runAIAnalysis()">🤖 Run AI Analysis</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Farm Profile Summary -->
+      <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,rgba(0,212,170,0.08),rgba(59,130,246,0.05))">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Farm Location</div><div style="font-size:14px;font-weight:700">Ranga Reddy, TG</div></div>
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Total Area</div><div style="font-size:14px;font-weight:700">45.6 Acres</div></div>
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Soil Type</div><div style="font-size:14px;font-weight:700">Clay Loam</div></div>
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Current Season</div><div style="font-size:14px;font-weight:700;color:var(--clr-primary)">Kharif 2026</div></div>
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Avg Rainfall</div><div style="font-size:14px;font-weight:700">820 mm/yr</div></div>
+        </div>
+      </div>
+
+      <!-- Season Tabs -->
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="season-tab active" onclick="filterSeason('all',this)">🌐 All Seasons</button>
+        <button class="season-tab" onclick="filterSeason('Kharif',this)">☔ Kharif (Jun–Nov)</button>
+        <button class="season-tab" onclick="filterSeason('Rabi',this)">❄️ Rabi (Nov–Apr)</button>
+        <button class="season-tab" onclick="filterSeason('Zaid',this)">☀️ Zaid (Mar–Jun)</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <select class="filter-select" onchange="applyFilters()">
+          <option value="">💧 Water Requirement</option>
+          <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option>
+        </select>
+        <select class="filter-select" onchange="applyFilters()">
+          <option value="">🌱 Soil Type</option>
+          <option value="Clay Loam">Clay Loam</option><option value="Sandy Loam">Sandy Loam</option>
+          <option value="Sandy">Sandy</option><option value="Black Soil">Black Soil</option>
+        </select>
+        <select class="filter-select" onchange="applyFilters()">
+          <option value="">📈 Sort By</option>
+          <option value="ai">AI Score</option><option value="profit">Profit</option><option value="days">Harvest Days</option>
+        </select>
+      </div>
+
+      <!-- Crop Grid -->
+      <div id="crop-grid" class="grid-4" style="margin-bottom:24px"></div>
+
+      <!-- Charts Row -->
+      <div class="grid-3" style="margin-bottom:24px">
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Profit Comparison</div></div>
+          <canvas id="profitChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">💧 Water Needs by Crop</div></div>
+          <canvas id="waterNeedChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔄 Crop Rotation Plan</div><span class="badge teal">AI Suggested</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="padding:12px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.3);border-radius:var(--radius-md)">
+              <div style="font-size:12px;color:var(--clr-primary);font-weight:700;margin-bottom:4px">CURRENT — Kharif 2026</div>
+              <div style="font-size:15px;font-weight:800">🌾 Paddy + 🌽 Maize</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Nitrogen: High | Soil: Clay Loam</div>
+            </div>
+            <div style="text-align:center;color:var(--text-muted);font-size:18px">↓</div>
+            <div style="padding:12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);border-radius:var(--radius-md)">
+              <div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:4px">NEXT — Rabi 2026</div>
+              <div style="font-size:15px;font-weight:800">🌿 Wheat + 🫘 Chickpea</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Nitrogen-fixing · Soil recovery</div>
+            </div>
+            <div style="text-align:center;color:var(--text-muted);font-size:18px">↓</div>
+            <div style="padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md)">
+              <div style="font-size:12px;color:var(--clr-warning);font-weight:700;margin-bottom:4px">FUTURE — Zaid 2027</div>
+              <div style="font-size:15px;font-weight:800">🍉 Watermelon + 🥒 Cucumber</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">High-value cash crop window</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fertilizer + Pest -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧪 Fertilizer Schedule</div><span class="badge teal">AI Generated</span></div>
+          <table class="data-table">
+            <thead><tr><th>Week</th><th>Crop</th><th>Fertilizer</th><th>Dose/acre</th><th>Method</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Week 1</td><td>🌾 Paddy</td><td>DAP (18-46-0)</td><td>50 kg</td><td>Broadcast</td><td><span class="badge green">Done</span></td></tr>
+              <tr><td>Week 3</td><td>🌾 Paddy</td><td>Urea (46% N)</td><td>40 kg</td><td>Top dress</td><td><span class="badge green">Done</span></td></tr>
+              <tr><td>Week 5</td><td>🌽 Maize</td><td>NPK (15-15-15)</td><td>60 kg</td><td>Fertigation</td><td><span class="badge amber">Due Soon</span></td></tr>
+              <tr><td>Week 6</td><td>🌾 Paddy</td><td>Potash (MOP)</td><td>30 kg</td><td>Broadcast</td><td><span class="badge blue">Upcoming</span></td></tr>
+              <tr><td>Week 8</td><td>🥜 Groundnut</td><td>Gypsum</td><td>200 kg</td><td>Soil apply</td><td><span class="badge blue">Upcoming</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🐛 Pest & Disease Watch</div><span class="badge amber">2 Risks Detected</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="pest-card" style="border-color:rgba(239,68,68,0.3)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-size:14px;font-weight:800">🪲 Brown Planthopper</div>
+                <span class="badge red">High Risk</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Affects paddy. High humidity + warm temperature = outbreak conditions.</div>
+              <div style="font-size:11px;font-weight:700;color:var(--clr-primary)">💊 Treatment: Imidacloprid 0.5 mL/L water · Spray evening · 2x this week</div>
+            </div>
+            <div class="pest-card" style="border-color:rgba(245,158,11,0.3)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-size:14px;font-weight:800">🍂 Leaf Blight</div>
+                <span class="badge amber">Moderate Risk</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Maize leaf blight detected via satellite NDVI anomaly in east zone.</div>
+              <div style="font-size:11px;font-weight:700;color:var(--clr-primary)">💊 Treatment: Mancozeb 2.5 g/L · Apply 2 times at 7 day interval</div>
+            </div>
+            <div class="pest-card" style="border-color:rgba(34,197,94,0.3)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-size:14px;font-weight:800">🌾 Groundnut Rosette</div>
+                <span class="badge green">Low Risk</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Preventive monitoring active. No active infection detected.</div>
+              <div style="font-size:11px;font-weight:700;color:var(--clr-success)">✅ No action needed. Monitor weekly.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+let currentSeason = 'all';
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCrops('all');
+
+  // Profit Chart
+  const topCrops = window.AgroApp.CropDB.sort((a,b) => b.ai_score - a.ai_score).slice(0, 6);
+  new Chart(document.getElementById('profitChart'), {
+    type: 'bar',
+    data: {
+      labels: topCrops.map(c => c.emoji + ' ' + c.name.split('(')[0].trim()),
+      datasets: [{ label: 'AI Score', data: topCrops.map(c => c.ai_score), backgroundColor: '#00d4aa88', borderRadius: 6, borderSkipped: false }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 60, max: 100 } } }
+  });
+
+  const waterMap = { Low: 30, Medium: 60, High: 90 };
+  new Chart(document.getElementById('waterNeedChart'), {
+    type: 'polarArea',
+    data: {
+      labels: ['Paddy (High)','Maize (Med)','Groundnut (Low)','Wheat (Med)','Cotton (Med)'],
+      datasets: [{ data: [90, 60, 30, 55, 65], backgroundColor: ['#3b82f688','#00d4aa88','#22c55e88','#60a5fa88','#a78bfa88'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 } } } }, scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } } }
+  });
+});
+
+function renderCrops(season) {
+  const crops = season === 'all' ? window.AgroApp.CropDB : window.AgroApp.CropDB.filter(c => c.season === season);
+  const el = document.getElementById('crop-grid');
+  el.innerHTML = crops.map((c, i) => `
+    <div class="crop-card ${c.ai_score >= 88 ? 'recommended' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <span class="crop-emoji">${c.emoji}</span>
+        <div>
+          ${c.ai_score >= 88 ? '<div style="font-size:10px;font-weight:800;color:var(--clr-primary);letter-spacing:1px;margin-bottom:4px">⭐ AI PICK</div>' : ''}
+          <div style="font-size:24px;font-weight:900;color:var(--clr-primary)">${c.ai_score}%</div>
+          <div style="font-size:10px;color:var(--text-muted)">AI Score</div>
+        </div>
+      </div>
+      <div style="font-size:15px;font-weight:800;color:var(--text-bright);margin-bottom:6px">${c.name}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="badge ${c.season === 'Kharif' ? 'blue' : c.season === 'Rabi' ? 'teal' : 'amber'}">${c.season}</span>
+        <span class="badge ${c.water === 'Low' ? 'green' : c.water === 'Medium' ? 'blue' : 'red'}">💧 ${c.water}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-secondary);margin-bottom:12px">
+        <div>🌱 Soil: <span style="color:var(--text-primary);font-weight:600">${c.soil}</span></div>
+        <div>📅 Days: <span style="color:var(--text-primary);font-weight:600">${c.days} days</span></div>
+        <div>💰 Profit: <span style="color:var(--clr-success);font-weight:700">${c.profit}</span></div>
+      </div>
+      <button class="btn-primary" style="width:100%;padding:10px;font-size:12px" onclick="selectCrop('${c.name}')">📋 Get Full Plan</button>
+    </div>
+  `).join('');
+}
+
+function filterSeason(season, btn) {
+  document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentSeason = season;
+  renderCrops(season);
+}
+
+function applyFilters() { renderCrops(currentSeason); }
+
+function selectCrop(name) {
+  window.AgroApp.showToast(`Loading full AI plan for ${name}...`, 'success');
+}
+
+function runAIAnalysis() {
+  window.AgroApp.showToast('AI analyzing your farm soil, weather & market data...', 'info');
+  setTimeout(() => window.AgroApp.showToast('Analysis complete! Cotton & Paddy recommended for best yield.', 'success'), 2500);
+}
+</script>
+</body>
+</html>

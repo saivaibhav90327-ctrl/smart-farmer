@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgroSphere — AI-Powered Smart Agritech Platform</title>
+  <meta name="description" content="Next-generation AI-powered Smart Agritech platform for satellite land scanning, smart irrigation, AI crop recommendations, and IoT farm monitoring." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/landing.css" />
+</head>
+<body class="landing-body">
+
+  <!-- Particle Canvas -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Nav -->
+  <nav class="landing-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">🛰️</div>
+      <span class="brand-name">AgroSphere</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#technology">Technology</a>
+      <a href="#pricing">Pricing</a>
+      <a href="dashboard.html" class="btn-nav-cta">Launch App</a>
+    </div>
+    <button class="nav-hamburger" onclick="toggleMobileMenu()">☰</button>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="satellite-ring ring-1"></div>
+    <div class="satellite-ring ring-2"></div>
+    <div class="satellite-ring ring-3"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Agriculture Intelligence
+      </div>
+      <h1 class="hero-title">
+        Farm Smarter with<br/>
+        <span class="gradient-text">Satellite & AI</span><br/>
+        Technology
+      </h1>
+      <p class="hero-subtitle">
+        Monitor your fields from space. Control irrigation from your phone.<br/>
+        Let AI predict what your crops need — before they need it.
+      </p>
+      <div class="hero-actions">
+        <a href="dashboard.html" class="btn-primary">
+          <span>🚀</span> Open Dashboard
+        </a>
+        <a href="#features" class="btn-ghost">
+          <span>▶</span> Watch Demo
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">2.4M+</div>
+          <div class="stat-label">Farmers</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">18.6B</div>
+          <div class="stat-label">Liters Saved</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">94.7%</div>
+          <div class="stat-label">Yield Increase</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">56</div>
+          <div class="stat-label">Countries</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Farm Card -->
+    <div class="hero-card">
+      <div class="farm-card">
+        <div class="farm-card-header">
+          <span class="fc-icon">🌿</span>
+          <div>
+            <div class="fc-title">Live Farm Status</div>
+            <div class="fc-sub">Ranga Reddy District, Telangana</div>
+          </div>
+          <div class="fc-live"><span class="live-dot"></span>LIVE</div>
+        </div>
+        <div class="ndvi-bar-wrap">
+          <div class="ndvi-label">NDVI Index</div>
+          <div class="ndvi-bar"><div class="ndvi-fill" style="width:72%"></div></div>
+          <div class="ndvi-val">0.72 — Good</div>
+        </div>
+        <div class="fc-metrics">
+          <div class="fc-metric"><div class="fc-m-val">68%</div><div class="fc-m-lbl">Soil Moisture</div></div>
+          <div class="fc-metric"><div class="fc-m-val">32°C</div><div class="fc-m-lbl">Temperature</div></div>
+          <div class="fc-metric"><div class="fc-m-val">ON</div><div class="fc-m-lbl">Motor</div></div>
+        </div>
+        <div class="fc-alert">⚠️ North-East field: Low moisture detected</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <div class="section-header">
+      <div class="section-badge">Core Features</div>
+      <h2>Everything Your Farm Needs</h2>
+      <p>A complete digital farming ecosystem — from satellite scanning to market insights</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card" onclick="location.href='satellite.html'">
+        <div class="fc-icon-big">🛰️</div>
+        <h3>Satellite Land Scanning</h3>
+        <p>NDVI analysis, soil moisture mapping, vegetation health, and real-time land heatmaps from space.</p>
+        <div class="fc-tags"><span>NDVI</span><span>GIS</span><span>Heatmaps</span></div>
+      </div>
+      <div class="feature-card" onclick="location.href='irrigation.html'">
+        <div class="fc-icon-big">💧</div>
+        <h3>Smart Irrigation Control</h3>
+        <p>Remote motor ON/OFF, auto-scheduling by soil moisture & weather, pipe leak detection alerts.</p>
+        <div class="fc-tags"><span>IoT</span><span>Remote</span><span>Auto</span></div>
+      </div>
+      <div class="feature-card" onclick="location.href='crops.html'">
+        <div class="fc-icon-big">🌾</div>
+        <h3>AI Crop Advisor</h3>
+        <p>Season-wise crop recommendations, rotation plans, fertilizer schedules, and pest prevention.</p>
+        <div class="fc-tags"><span>AI/ML</span><span>Kharif</span><span>Rabi</span></div>
+      </div>
+      <div class="feature-card" onclick="location.href='iot.html'">
+        <div class="fc-icon-big">📡</div>
+        <h3>IoT Sensor Network</h3>
+        <p>Real-time soil pH, humidity, water level, temperature from ESP32 / LoRaWAN sensors.</p>
+        <div class="fc-tags"><span>ESP32</span><span>LoRa</span><span>Live</span></div>
+      </div>
+      <div class="feature-card" onclick="location.href='weather.html'">
+        <div class="fc-icon-big">🌦️</div>
+        <h3>Weather Intelligence</h3>
+        <p>Rain alerts, storm warnings, seasonal farming calendar, and climate-based irrigation timing.</p>
+        <div class="fc-tags"><span>Forecast</span><span>Alerts</span><span>Calendar</span></div>
+      </div>
+      <div class="feature-card" onclick="location.href='marketplace.html'">
+        <div class="fc-icon-big">🏪</div>
+        <h3>Agri Marketplace</h3>
+        <p>Seeds, fertilizers, equipment. Government subsidies, crop insurance, loan eligibility.</p>
+        <div class="fc-tags"><span>Seeds</span><span>Subsidy</span><span>Finance</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack Section -->
+  <section class="tech-section" id="technology">
+    <div class="section-header">
+      <div class="section-badge">Architecture</div>
+      <h2>Enterprise-Grade Technology</h2>
+      <p>Built for billions of interactions — satellite to smartphone</p>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-pillar">
+        <div class="tp-icon">📱</div>
+        <h4>Frontend</h4>
+        <ul><li>React Native / Flutter</li><li>Next.js Web Dashboard</li><li>Offline-first PWA</li><li>Multi-language UI</li></ul>
+      </div>
+      <div class="tech-pillar">
+        <div class="tp-icon">⚙️</div>
+        <h4>Backend</h4>
+        <ul><li>Node.js + FastAPI</li><li>GraphQL + REST APIs</li><li>Firebase Realtime DB</li><li>Microservices</li></ul>
+      </div>
+      <div class="tech-pillar">
+        <div class="tp-icon">🧠</div>
+        <h4>AI & Analytics</h4>
+        <ul><li>TensorFlow / PyTorch</li><li>Google Earth Engine</li><li>OpenCV Crop Disease</li><li>NDVI Processing</li></ul>
+      </div>
+      <div class="tech-pillar">
+        <div class="tp-icon">☁️</div>
+        <h4>Cloud Infra</h4>
+        <ul><li>AWS / GCP / Azure</li><li>Kubernetes + Docker</li><li>Edge Computing</li><li>CDN Optimization</li></ul>
+      </div>
+      <div class="tech-pillar">
+        <div class="tp-icon">🔌</div>
+        <h4>IoT Hardware</h4>
+        <ul><li>ESP32 / Raspberry Pi</li><li>Soil & Water Sensors</li><li>WiFi / GSM / LoRa</li><li>Motor Relay Modules</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="cta-content">
+      <h2>Ready to Transform Your Farm?</h2>
+      <p>Join 2.4 million farmers already using AgroSphere to grow smarter</p>
+      <a href="dashboard.html" class="btn-primary btn-large">
+        🌱 Start Free Trial — No Credit Card Required
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="brand-icon">🛰️</div>
+        <span class="brand-name">AgroSphere</span>
+        <p>Empowering farmers with satellite intelligence, AI, and IoT automation.</p>
+      </div>
+      <div class="footer-links">
+        <div class="fl-col"><h5>Platform</h5><a href="dashboard.html">Dashboard</a><a href="satellite.html">Satellite</a><a href="irrigation.html">Irrigation</a><a href="crops.html">Crops</a></div>
+        <div class="fl-col"><h5>Support</h5><a href="#">Documentation</a><a href="#">API Reference</a><a href="#">Community</a><a href="#">Contact</a></div>
+        <div class="fl-col"><h5>Languages</h5><a href="#">English</a><a href="#">తెలుగు</a><a href="#">हिंदी</a><a href="#">தமிழ்</a><a href="#">ಕನ್ನಡ</a></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AgroSphere Technologies. All rights reserved.</span>
+      <span>Built for 172.6B+ future interactions 🚀</span>
+    </div>
+  </footer>
+
+  <script src="scripts/particles.js"></script>
+  <script src="scripts/landing.js"></script>
+</body>
+</html>

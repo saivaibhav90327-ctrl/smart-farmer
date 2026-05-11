@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Sensors — AgroSphere</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .sensor-card { background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--radius-lg);padding:20px;transition:all 0.3s;position:relative;overflow:hidden; }
+    .sensor-card.online  { border-color:rgba(0,212,170,0.3); }
+    .sensor-card.warning { border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.03); }
+    .sensor-card.offline { border-color:rgba(239,68,68,0.3);opacity:0.65; }
+    .sensor-card:hover   { transform:translateY(-3px);box-shadow:var(--shadow-glow); }
+    .sensor-value { font-family:var(--font-heading);font-size:36px;font-weight:900;line-height:1;margin:12px 0 4px; }
+    .conn-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;background:var(--bg-glass-light);border:1px solid var(--border-card);color:var(--text-secondary); }
+    .conn-chip.wifi   { color:#60a5fa;border-color:rgba(96,165,250,0.3); }
+    .conn-chip.lora   { color:#a78bfa;border-color:rgba(167,139,250,0.3); }
+    .conn-chip.gsm    { color:var(--clr-warning);border-color:rgba(245,158,11,0.3); }
+    .conn-chip.ble    { color:var(--clr-primary);border-color:rgba(0,212,170,0.3); }
+    .device-row { display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-glass-light);border:1px solid var(--border-card);border-radius:var(--radius-md);margin-bottom:8px;transition:all 0.2s; }
+    .device-row:hover { background:var(--bg-card-hover);border-color:var(--border-subtle); }
+    .device-status-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+    .device-status-dot.online  { background:var(--clr-success);animation:pulse-dot 2s infinite; }
+    .device-status-dot.warning { background:var(--clr-warning);animation:pulse-dot 1.5s infinite; }
+    .device-status-dot.offline { background:var(--clr-danger); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon">🛰️</div><div><div class="brand-text">AGROSPHERE</div><div class="brand-version">AI PLATFORM v3.2</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item" href="satellite.html"><span class="nav-icon">🛰️</span> Satellite Scanner</a>
+      <a class="nav-item" href="irrigation.html"><span class="nav-icon">💧</span> Irrigation Control</a>
+      <a class="nav-item" href="crops.html"><span class="nav-icon">🌾</span> Crop Advisor</a>
+      <a class="nav-item active" href="iot.html"><span class="nav-icon">📡</span> IoT Sensors</a>
+      <a class="nav-item" href="weather.html"><span class="nav-icon">🌦️</span> Weather</a>
+      <div class="nav-group-label" style="margin-top:12px">Business</div>
+      <a class="nav-item" href="marketplace.html"><span class="nav-icon">🏪</span> Marketplace</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-profile"><div class="user-avatar">R</div><div><div class="user-name">Ramaiah Goud</div><div class="user-role">🌿 Farmer · Telangana</div></div></div></div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div><div class="topbar-title">📡 IoT Sensor Network</div><div class="topbar-sub">ESP32 · LoRaWAN · WiFi · GSM · Bluetooth · Real-time sync every 3s</div></div>
+      <div class="topbar-actions">
+        <div class="status-pill"><div class="status-dot"></div>6 Online · 1 Warning · 1 Offline</div>
+        <button class="topbar-btn" onclick="AgroApp.showToast('Sensors refreshed','success')">🔄</button>
+        <button class="btn-primary" onclick="AgroApp.showToast('Device pairing wizard coming soon','info')">+ Add Sensor</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="grid-5" style="margin-bottom:24px">
+        <div class="metric-card"><div class="mc-icon green">📡</div><div class="mc-info"><div class="mc-value">8</div><div class="mc-label">Total Sensors</div><div class="mc-change up">↑ 2 this month</div></div></div>
+        <div class="metric-card"><div class="mc-icon blue">💧</div><div class="mc-info"><div class="mc-value" id="kpi-m">68%</div><div class="mc-label">Soil Moisture</div><div class="mc-change neutral">North Field</div></div></div>
+        <div class="metric-card"><div class="mc-icon amber">🌡️</div><div class="mc-info"><div class="mc-value" id="kpi-t">32°C</div><div class="mc-label">Temperature</div><div class="mc-change down">2°C above avg</div></div></div>
+        <div class="metric-card"><div class="mc-icon green">🔬</div><div class="mc-info"><div class="mc-value" id="kpi-p">6.8</div><div class="mc-label">Soil pH</div><div class="mc-change up">↑ Optimal</div></div></div>
+        <div class="metric-card"><div class="mc-icon purple">🌫️</div><div class="mc-info"><div class="mc-value" id="kpi-h">74%</div><div class="mc-label">Humidity</div><div class="mc-change neutral">Station avg</div></div></div>
+      </div>
+
+      <div class="section-title" style="margin-bottom:16px">Live Sensor Readings</div>
+      <div id="sensor-cards" class="grid-4" style="margin-bottom:24px"></div>
+
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📈 Soil Moisture — 24h Trend</div><span class="badge green">Live</span></div>
+          <canvas id="mChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🌡️ Temperature & Humidity — 24h</div></div>
+          <canvas id="thChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔌 Connected Devices</div></div>
+          <div id="device-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 Sensor Log</div><span class="card-action">Export CSV</span></div>
+          <table class="data-table">
+            <thead><tr><th>Time</th><th>Sensor</th><th>Value</th><th>Field</th><th>Status</th></tr></thead>
+            <tbody id="data-log"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="scripts/app.js"></script>
+<script>
+const { getSensor, showToast } = window.AgroApp;
+
+const SC = [
+  {id:'S1',name:'Soil Moisture', field:'North Field', icon:'💧',key:'moisture',   unit:'%',   conn:'wifi',status:'online' ,thresh:[35,60]},
+  {id:'S2',name:'Temperature',   field:'North Field', icon:'🌡️',key:'temperature',unit:'°C',  conn:'wifi',status:'online' ,thresh:[20,38]},
+  {id:'S3',name:'Humidity',      field:'East Field',  icon:'🌫️',key:'humidity',   unit:'%',   conn:'lora',status:'online' ,thresh:[40,90]},
+  {id:'S4',name:'Soil pH',       field:'South Field', icon:'🔬',key:'ph',         unit:'pH',  conn:'ble', status:'online' ,thresh:[6,7.5]},
+  {id:'S5',name:'Water Level',   field:'Tank A',      icon:'🪣',key:'waterLevel', unit:'%',   conn:'gsm', status:'online' ,thresh:[25,80]},
+  {id:'S6',name:'Wind Speed',    field:'Station',     icon:'💨',key:'windSpeed',  unit:'km/h',conn:'wifi',status:'online' ,thresh:[0,30]},
+  {id:'S7',name:'Soil Moisture', field:'East Field',  icon:'💧',key:'moisture',   unit:'%',   conn:'lora',status:'warning',thresh:[35,60]},
+  {id:'S8',name:'Water Level',   field:'Tank B',      icon:'🪣',key:'waterLevel', unit:'%',   conn:'gsm', status:'offline',thresh:[25,80]},
+];
+
+function getColor(s, v) {
+  if(s.status === 'offline') return 'var(--text-muted)';
+  if(v < s.thresh[0]) return 'var(--clr-danger)';
+  if(v > s.thresh[1]) return 'var(--clr-warning)';
+  return 'var(--clr-primary)';
+}
+
+function renderCards() {
+  document.getElementById('sensor-cards').innerHTML = SC.map(s => {
+    const raw = s.status === 'offline' ? null : getSensor(s.key);
+    const val = raw === null ? '--' : raw;
+    const color = getColor(s, raw);
+    const pct = raw !== null ? Math.min(100, Math.max(0, (raw / 100) * 100)) : 0;
+    return `
+      <div class="sensor-card ${s.status}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:24px">${s.icon}</span>
+          <span class="conn-chip ${s.conn}">${s.conn.toUpperCase()}</span>
+        </div>
+        <div class="sensor-value" style="color:${color}">${val}${raw !== null ? s.unit : ''}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${s.name}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:10px">📍 ${s.field} · ${s.id}</div>
+        <div class="progress-bar" style="margin-bottom:8px">
+          <div style="height:100%;border-radius:3px;background:${color}99;width:${pct}%;transition:width 1s ease"></div>
+        </div>
+        <div style="font-size:11px;color:${s.status==='online'?'var(--clr-success)':s.status==='warning'?'var(--clr-warning)':'var(--clr-danger)'}">
+          ${s.status==='online'?'🟢 Online':s.status==='warning'?'🟡 Warning':'🔴 Offline'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+renderCards();
+setInterval(renderCards, 3500);
+setInterval(() => {
+  document.getElementById('kpi-m').textContent = getSensor('moisture') + '%';
+  document.getElementById('kpi-t').textContent = getSensor('temperature') + '°C';
+  document.getElementById('kpi-p').textContent = getSensor('ph');
+  document.getElementById('kpi-h').textContent = getSensor('humidity') + '%';
+}, 3500);
+
+// Moisture Trend
+const hrs = Array.from({length:24},(_,i)=>`${String(i).padStart(2,'0')}:00`);
+const mCtx = document.getElementById('mChart').getContext('2d');
+const mg = mCtx.createLinearGradient(0,0,0,200); mg.addColorStop(0,'rgba(0,212,170,0.3)'); mg.addColorStop(1,'rgba(0,212,170,0)');
+const mg2= mCtx.createLinearGradient(0,0,0,200); mg2.addColorStop(0,'rgba(59,130,246,0.3)');mg2.addColorStop(1,'rgba(59,130,246,0)');
+new Chart(mCtx,{type:'line',data:{labels:hrs,datasets:[
+  {label:'North',data:hrs.map((_,i)=>Math.round(55+15*Math.sin(i*0.4)+Math.random()*6)),borderColor:'#00d4aa',borderWidth:2,backgroundColor:mg,fill:true,tension:0.4,pointRadius:0},
+  {label:'East', data:hrs.map((_,i)=>Math.round(42+18*Math.sin(i*0.35+1)+Math.random()*8)),borderColor:'#3b82f6',borderWidth:2,backgroundColor:mg2,fill:true,tension:0.4,pointRadius:0},
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,0.05)'},min:20,max:100,ticks:{callback:v=>v+'%'}}}}});
+
+// Temp/Humidity
+const tCtx = document.getElementById('thChart').getContext('2d');
+new Chart(tCtx,{type:'line',data:{labels:hrs,datasets:[
+  {label:'Temp °C', data:hrs.map((_,i)=>Math.round(24+10*Math.sin((i-6)*0.26)+Math.random()*3)),borderColor:'#f59e0b',borderWidth:2,fill:false,tension:0.4,pointRadius:0,yAxisID:'y1'},
+  {label:'Hum %',  data:hrs.map((_,i)=>Math.round(65+20*Math.cos((i-14)*0.25)+Math.random()*5)),borderColor:'#60a5fa',borderWidth:2,fill:false,tension:0.4,pointRadius:0,yAxisID:'y2'},
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{
+  x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{maxTicksLimit:8}},
+  y1:{type:'linear',position:'left',grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#f59e0b',callback:v=>v+'°C'},min:18,max:45},
+  y2:{type:'linear',position:'right',grid:{display:false},ticks:{color:'#60a5fa',callback:v=>v+'%'},min:30,max:100},
+}}});
+
+// Devices
+const devices = [
+  {id:'ESP32-A1',type:'ESP32',conn:'WiFi 2.4GHz', batt:'AC (mains)',  status:'online', rssi:-42},
+  {id:'ESP32-A2',type:'ESP32',conn:'WiFi 2.4GHz', batt:'Solar',       status:'online', rssi:-58},
+  {id:'LoRa-B2', type:'LoRaWAN',conn:'868 MHz',   batt:'87%',         status:'online', rssi:-95},
+  {id:'LoRa-B3', type:'LoRaWAN',conn:'868 MHz',   batt:'34% ⚠️',      status:'warning',rssi:-108},
+  {id:'BLE-C1',  type:'BLE 5.0',conn:'Bluetooth', batt:'62%',         status:'online', rssi:-72},
+  {id:'GSM-D1',  type:'GSM/4G', conn:'4G LTE',    batt:'AC (mains)',  status:'online', rssi:-68},
+  {id:'GSM-D2',  type:'GSM/4G', conn:'4G LTE',    batt:'DEAD 🔴',     status:'offline',rssi:'--'},
+];
+document.getElementById('device-list').innerHTML = devices.map(d=>`
+  <div class="device-row">
+    <div class="device-status-dot ${d.status}"></div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${d.id} <span style="font-size:11px;color:var(--text-muted)">· ${d.type}</span></div>
+      <div style="font-size:11px;color:var(--text-secondary)">${d.conn} · RSSI: ${d.rssi} dBm</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;font-weight:700;color:${d.status==='online'?'var(--clr-success)':d.status==='warning'?'var(--clr-warning)':'var(--clr-danger)'}">${d.status.toUpperCase()}</div>
+      <div style="font-size:10px;color:var(--text-muted)">🔋 ${d.batt}</div>
+    </div>
+  </div>`).join('');
+
+// Log
+const log=[
+  {t:'17:45:02',s:'S1 Moisture',v:'68%', f:'North',st:'normal'},
+  {t:'17:45:01',s:'S2 Temp',    v:'32°C',f:'North',st:'normal'},
+  {t:'17:44:58',s:'S7 Moisture',v:'31%', f:'East', st:'warning'},
+  {t:'17:44:55',s:'S5 Water',   v:'76%', f:'Tank A',st:'normal'},
+  {t:'17:44:50',s:'S3 Humidity',v:'74%', f:'East', st:'normal'},
+  {t:'17:44:48',s:'S4 pH',      v:'6.8', f:'South',st:'normal'},
+  {t:'17:44:45',s:'S8 Water',   v:'--',  f:'Tank B',st:'offline'},
+];
+document.getElementById('data-log').innerHTML = log.map(l=>`
+  <tr>
+    <td style="color:var(--text-muted);font-size:12px">${l.t}</td>
+    <td style="font-weight:600">${l.s}</td>
+    <td style="font-weight:800;color:${l.st==='normal'?'var(--clr-primary)':l.st==='warning'?'var(--clr-warning)':'var(--clr-danger)'}">${l.v}</td>
+    <td>${l.f}</td>
+    <td><span class="badge ${l.st==='normal'?'green':l.st==='warning'?'amber':'red'}">${l.st}</span></td>
+  </tr>`).join('');
+</script>
+</body>
+</html>
